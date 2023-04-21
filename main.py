@@ -12,7 +12,7 @@ pygame.display.set_caption("Two-Sound Synthesizer")
 # Define colors
 white = (255, 255, 255)
 black = (0, 0, 0)
-gray = (192, 192, 192)
+gray = "#14213d"
 light_gray = (230, 230, 230)
 
 # Frequencies for each note
@@ -76,9 +76,6 @@ class Key:
         self.y = y
         self.width = width
         self.height = height
-    
-    def get_frequency(self):
-        return frequencies[self.key_code]
 
     def render(self, surface):
         pygame.draw.rect(surface, self.color, (self.x, self.y, self.width, self.height))
@@ -94,6 +91,14 @@ class Key:
     def is_inside(self, x, y):
         return self.x <= x <= self.x + self.width and self.y <= y <= self.y + self.height
 
+# Toggle wave type
+toggle_size = (50, 50)
+toggle_color = (200, 200, 200)
+toggle_text = 'Sine'
+toggle_font = pygame.font.SysFont('Calibri', 20, True, False)
+toggle_text_surface = toggle_font.render(toggle_text, True, white)
+toggle_text_x = 50 + (toggle_size[0] - toggle_text_surface.get_width()) / 2
+toggle_text_y = 50 + (toggle_size[1] - toggle_text_surface.get_height()) / 2
 
 def create_keys():
     key_size = (50, 200)
@@ -115,8 +120,7 @@ def create_keys():
 keys = create_keys()
 
 def main():
-    # STOP_NOTE = pygame.USEREVENT + 1
-    # sustain_duration = 300  # in milliseconds (300ms in this case)
+    sustain_duration = 300  # in milliseconds (300ms in this case)
 
     global current_wave_type
 
@@ -131,40 +135,38 @@ def main():
                     current_wave_type = 'square' if current_wave_type == 'sine' else 'sine'
 
                 if event.key in waves:
+                    channels[event.key].stop()
                     channels[event.key].play(waves[event.key][current_wave_type])
                     for key in keys:
                         if key.key_code == event.key:
                             key.highlight_key(True)
-                            freq = key.get_frequency()
-
+                
             if event.type == pygame.KEYUP:
                 for key in keys:
                     if key.key_code == event.key:
                         key.highlight_key(False)
-                        channels[event.key].stop()
-                        # pygame.time.set_timer(STOP_NOTE, sustain_duration, True)
-                        # released_key = event.key
-
-            # if event.type == STOP_NOTE:
-                # channels[released_key].stop()
-                # draw_waveform(0)  # Clear the waveform
-
-
-
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                x, y = pygame.mouse.get_pos()
-                for key in keys:
-                    if key.is_inside(x, y):
-                        waves[key.key_code][current_wave_type].play()
-                        key.highlight_key(True)
-
-            if event.type == pygame.MOUSEBUTTONUP:
-                x, y = pygame.mouse.get_pos()
-                for key in keys:
-                    if key.is_inside(x, y):
-                        key.highlight_key(False)
+                        # Sustain the sound for a bit
+                        channels[event.key].fadeout(sustain_duration)
 
         screen.fill(gray)
+
+        # Draw toggle indicator
+        toggle_x = 700
+        toggle_y = 50
+
+        if current_wave_type == 'sine':
+            toggle_text = 'Sine'
+            # Change channel volumes
+            for channel in channels.values():
+                channel.set_volume(1.0)
+        else:
+            toggle_text = 'Square'
+            # Change channel volumes
+            for channel in channels.values():
+                channel.set_volume(0.3)
+        toggle_font = pygame.font.SysFont('Calibri', 20, True, False)
+        toggle_text_surface = toggle_font.render(toggle_text, True, white)
+        screen.blit(toggle_text_surface, (toggle_x, toggle_y))
 
         for key in keys:
             key.render(screen)
