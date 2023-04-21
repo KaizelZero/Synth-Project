@@ -104,6 +104,8 @@ def main():
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
+                    for audio in channels.values():
+                        audio.stop()
                     current_wave_type = 'square' if current_wave_type == 'sine' else 'sine'
 
                 if event.key in waves:
@@ -128,11 +130,11 @@ def main():
         if current_wave_type == 'sine':
             toggle_text = 'Sine'
             for channel in channels.values():
-                channel.set_volume(0.3)
+                channel.set_volume(0.1)
         else:
             toggle_text = 'Square'
             for channel in channels.values():
-                channel.set_volume(0.3)
+                channel.set_volume(0.04)
 
         toggle_font = pygame.font.SysFont('Calibri', 20, True, False)
         toggle_text_surface = toggle_font.render(toggle_text, True, WHITE)
