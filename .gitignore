@@ -1,2 +1,6 @@
 .DS_Store
 .devcontainer
+*.spec
+
+build/
+dist/

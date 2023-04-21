@@ -5,7 +5,7 @@ import numpy as np
 pygame.init()
 
 # Set up the Pygame window
-size = (800, 600)
+size = (800, 400)
 screen = pygame.display.set_mode(size)
 pygame.display.set_caption("Two-Sound Synthesizer")
 
