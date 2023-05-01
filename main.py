@@ -5,7 +5,7 @@ import numpy as np
 pygame.init()
 
 # Set up the Pygame window
-size = (800, 400)
+size = (570, 450)
 screen = pygame.display.set_mode(size)
 pygame.display.set_caption("Two-Sound Synthesizer")
 
@@ -21,7 +21,8 @@ frequencies = {
     pygame.K_f: 698.46,  # F5
     pygame.K_g: 783.99,  # G5
     pygame.K_h: 880.00,  # A5
-    pygame.K_j: 987.77   # B5
+    pygame.K_j: 987.77,   # B5
+    pygame.K_k: 1046.50  # C6
 }
 
 # Initialize Pygame mixer and create sounds
@@ -78,20 +79,25 @@ class Key:
     def render(self, surface):
         # Draw the key on the surface using the pygame draw.rect function
         pygame.draw.rect(surface, self.color,
-                         (self.x, self.y, self.width, self.height))
+                         (self.x, self.y + 100, self.width, self.height))
         # Add labels for the key name and corresponding keyboard key using the pygame blit function
         font = pygame.font.SysFont('Calibri', 20, True, False)
         for i, text in enumerate([self.name, pygame.key.name(self.key_code)]):
             surface.blit(font.render(text, True, BLACK),
-                         (self.x + 15, self.y + 150 + 20 * i))
+                         (self.x + 15, self.y + 250 + 20 * i))
 
     def highlight_key(self, highlight):
         # Change the color of the key to LIGHT_GRAY if highlight is True, or WHITE otherwise
         self.color = LIGHT_GRAY if highlight else WHITE
 
+    # Deprecated
     def is_inside(self, x, y):
         # Check if the given x and y coordinates are within the bounds of the key
         return self.x <= x <= self.x + self.width and self.y <= y <= self.y + self.height
+    
+    def get_frequency(self):
+        # Get the frequency of the key from the frequencies dictionary
+        return frequencies[self.key_code]
 
 
 # Define a function to create piano keys
@@ -99,9 +105,9 @@ def create_keys():
     # Set the size of each key, the spacing between keys, and the starting position of the first key
     key_size, key_spacing, key_start_x, key_start_y = (50, 200), 10, 50, 50
     # Define the names and keyboard key codes of each key
-    key_names = ['C5', 'D5', 'E5', 'F5', 'G5', 'A5', 'B5']
+    key_names = ['C5', 'D5', 'E5', 'F5', 'G5', 'A5', 'B5', 'C6']
     key_codes = [pygame.K_a, pygame.K_s, pygame.K_d,
-                 pygame.K_f, pygame.K_g, pygame.K_h, pygame.K_j]
+                 pygame.K_f, pygame.K_g, pygame.K_h, pygame.K_j, pygame.K_k]
     # Create a list of Key objects using a list comprehension
     return [
         # Create a Key object for each key using its name, keyboard key code, color, and position and size on the screen
@@ -118,6 +124,7 @@ keys = create_keys()
 # Main function
 def main():
     sustain_duration = 300  # in milliseconds (300ms in this case)
+    frequency_display = None
 
     global current_wave_type
 
@@ -134,8 +141,10 @@ def main():
             if event.type == pygame.KEYDOWN:
                 # If the key is the space bar, toggle the wave type
                 if event.key == pygame.K_SPACE:
+                    # Stop all currently playing sounds
                     for audio in channels.values():
                         audio.stop()
+                    # Toggle the wave type
                     current_wave_type = 'square' if current_wave_type == 'sine' else 'sine'
 
                 # If the key is a valid piano key, play the corrosponding note
@@ -146,6 +155,7 @@ def main():
                     for key in keys:
                         if key.key_code == event.key:
                             key.highlight_key(True)
+                            frequency_display = key.get_frequency()
 
             # If the user releases a key, stop playing the note after the sustain duration
             if event.type == pygame.KEYUP:
@@ -158,7 +168,7 @@ def main():
         screen.fill(BACKGROUND)
 
         # Draw toggle indicator
-        toggle_x, toggle_y = 500, 70
+        toggle_x, toggle_y = 50, 400
 
         # Wave type indicator
         if current_wave_type == 'sine':
@@ -178,12 +188,31 @@ def main():
         # Draw the instructions on the screen
         toggle_font = pygame.font.SysFont('Calibri', 20, True, False)
         toggle_text_surface = toggle_font.render(
-            "Space: Toggle Wave Type", True, WHITE)
+            "Space - Toggle Wave Type", True, WHITE)
         screen.blit(toggle_text_surface, (toggle_x, toggle_y - 20))
+
+        # Draw title at the top of the screen
+        title_font = pygame.font.Font('beon-webfont.ttf', 60)
+
+        title_text_surface = title_font.render(
+            "Software", True, WHITE)
+        screen.blit(title_text_surface, (50, 10))
+        title_text_surface = title_font.render(
+            "Synthesizer", True, WHITE)
+        screen.blit(title_text_surface, (50, 65))
 
         # Draw the keys on the screen
         for key in keys:
             key.render(screen)
+
+        # Draw the frequency on the bottom right
+        if frequency_display:
+            frequency_font = pygame.font.SysFont('Calibri', 20, True, False)
+            frequency_text_surface = frequency_font.render(
+                "Frequency: {:.2f} Hz".format(frequency_display), True, WHITE)
+            frequency_x = size[0] - frequency_text_surface.get_width() - 10
+            frequency_y = size[1] - frequency_text_surface.get_height() - 10
+            screen.blit(frequency_text_surface, (frequency_x, frequency_y))
 
         # Update the display
         pygame.display.update()
