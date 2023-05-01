@@ -1,5 +1,6 @@
 import pygame
 import numpy as np
+import os
 
 # Initialize Pygame
 pygame.init()
@@ -32,7 +33,7 @@ channels = {key: pygame.mixer.Channel(i) for i, key in enumerate(frequencies)}
 # Set up variables for the wave generator
 sampling_rate = 44100
 duration = 10.0
-
+    
 
 # Generate a sine wave with a given frequency and duration
 # Default wave type is sine wave
@@ -192,7 +193,8 @@ def main():
         screen.blit(toggle_text_surface, (toggle_x, toggle_y - 20))
 
         # Draw title at the top of the screen
-        title_font = pygame.font.Font('beon-webfont.ttf', 60)
+        font_path = os.path.join("fonts", "beon-webfont.ttf")
+        title_font = pygame.font.Font(font_path, 60)
 
         title_text_surface = title_font.render(
             "Software", True, WHITE)
