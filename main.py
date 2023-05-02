@@ -93,8 +93,8 @@ class Key:
 
     # Deprecated
     def is_inside(self, x, y):
-        # Check if the given x and y coordinates are within the bounds of the key
-        return self.x <= x <= self.x + self.width and self.y <= y <= self.y + self.height
+        # Check if the given x and y coordinates are within the bounds of the key and shift the y coordinate by 100 pixels
+        return self.x <= x <= self.x + self.width and self.y + 100 <= y <= self.y + 100 + self.height
     
     def get_frequency(self):
         # Get the frequency of the key from the frequencies dictionary
@@ -164,6 +164,21 @@ def main():
                     if key.key_code == event.key:
                         key.highlight_key(False)
                         channels[event.key].fadeout(sustain_duration)
+            
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_x, mouse_y = pygame.mouse.get_pos()
+                for key in keys:
+                    if key.is_inside(mouse_x, mouse_y):
+                        channels[key.key_code].stop()
+                        channels[key.key_code].play(
+                            waves[key.key_code][current_wave_type])
+                        key.highlight_key(True)
+                        frequency_display = key.get_frequency()
+
+            if event.type == pygame.MOUSEBUTTONUP:
+                for key in keys:
+                    key.highlight_key(False)
+                    channels[key.key_code].fadeout(sustain_duration)
 
         # Fill the screen with a dark color
         screen.fill(BACKGROUND)
